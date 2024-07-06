@@ -1,0 +1,4 @@
+/data
+orchestrator/dags/__pycache__
+orchestrator/dags/data
+orchestrator/logs
