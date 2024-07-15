@@ -8,12 +8,12 @@ from airflow.providers.apache.hdfs.sensors.hdfs import HdfsSensor
 import logging
 import requests
 from hdfs import InsecureClient
-
+from airflow.operators.python import get_current_context
 logger = logging.getLogger(__name__)
 
 
 @dag(
-    dag_id='pipeline_dpe_dl_import',
+    dag_id='pipeline_enedis_dl_import',
     start_date=None,  # pendulum.datetime(2024, 6, 29),
     max_active_runs=3,
     schedule=None,  # "@daily",
@@ -24,16 +24,16 @@ logger = logging.getLogger(__name__)
         "email_on_retry": False,
         "retries": 1,
     },
-    catchup=False
+    catchup=False,
 )
-def pipeline_dpe_dl_import():
+def pipeline_enedis_dl_import():
     start = EmptyOperator(
         task_id='start'
     )
     end = EmptyOperator(
         task_id='end'
     )
-    __date_conso = ['dpe-v2-logements-neufs', 'dpe-v2-tertiaire-2', '2021']
+    __date_conso = ['2023', '2022', '2021']
 
     @task_group()
     def pull_and_push():
@@ -41,7 +41,7 @@ def pipeline_dpe_dl_import():
             @task(task_id=f'fetch_from_api_{date}')
             def fetch_from_api(date=date):
                 res = requests.get(
-                    f'https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-neufs/lines')
+                    f'https://data.enedis.fr/api/explore/v2.1/catalog/datasets/consommation-annuelle-residentielle-par-adresse/records?limit=20&refine=annee%3A%22{date}%22')
                 res = res.json()
                 res = res['results']
                 logger.info(f'date export conso : {date}:::::{res}')
@@ -68,4 +68,4 @@ def pipeline_dpe_dl_import():
     start >> pull_and_push() >> end
 
 
-pipeline_dpe_dl_import()
+pipeline_enedis_dl_import()

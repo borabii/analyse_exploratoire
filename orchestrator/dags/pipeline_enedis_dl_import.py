@@ -3,8 +3,7 @@ import os
 import pendulum
 from airflow.decorators import dag, task, task_group
 from airflow.operators.empty import EmptyOperator
-from airflow.providers.apache.hdfs.hooks.webhdfs import WebHDFSHook
-from airflow.providers.apache.hdfs.sensors.hdfs import HdfsSensor
+
 import logging
 import requests
 from hdfs import InsecureClient
@@ -56,9 +55,9 @@ def pipeline_enedis_dl_import():
                 with open(tmp_file_path, "w+") as file:
                     json.dump(data, file)
 
-                hdfs_file_path = f'/hadoop/dfs/data/consommation-annuelle-residentielle_{date}.json'
+                hdfs_file_path = f'/hadoop/dfs/data/enedis/consommation-annuelle-residentielle_{date}.json'
                 # Remove tmp file
-                os.remove
+                #os.remove
                 # Upload the file to HDFS
                 client.upload(hdfs_file_path, tmp_file_path, overwrite=True)
 
