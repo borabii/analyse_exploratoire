@@ -2,19 +2,6 @@ version: '3'
 
 services:
 
-  postgres:
-    image: postgres:14.0
-    environment:
-      - POSTGRES_USER=airflow
-      - POSTGRES_PASSWORD=airflow
-      - POSTGRES_DB=airflow
-    logging:
-      options:
-        max-size: 10m
-        max-file: "3"
-    networks:
-      - my_shared_network
-  
   pgadmin:
     image: dpage/pgadmin4:latest
     environment:
@@ -22,48 +9,83 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8082:80"
-    depends_on:
-      - postgres
     networks:
       - my_shared_network
  # spark
-  spark-master:
-    image: bde2020/spark-master:3.0.0-hadoop3.2-java11
-    container_name: spark-master
-    ports:
-      - "9090:8082"
-      - "7077:7077"
-    env_file:
-      - ./hadoop.env
-    networks:
-      - my_shared_network
- 
-  spark-worker:
-    image: bde2020/spark-worker:3.0.0-hadoop3.2-java11
-    depends_on:
-      - spark-master
-    environment:
-      - SPARK_MASTER=spark://spark-master:7077
-    ports:
-      - 8081:8081
-    env_file:
-      - ./hadoop.env
-    networks:
-      - my_shared_network
+  spark:
+      image: docker.io/bitnami/spark:3.3
+      environment:
+        - SPARK_MODE=master
+      ports:
+        - '4040:4040'
+        - '7077:7077'
+      volumes:
+        - ./pak:/opt/workspace
+      env_file:
+        - ./hadoop.env
+      networks:
+        - my_shared_network
 
-  spark-notebook:
-    image: bde2020/spark-notebook:2.1.0-hadoop2.8-hive
-    container_name: spark-notebook
+  spark-worker:
+    image: docker.io/bitnami/spark:3.3
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_EXECUTOR_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+    volumes:
+      - ./pak:/opt/workspace
     env_file:
       - ./hadoop.env
-    ports:
-      - 9001:9001
-    entrypoint: sh -c "rm -f /opt/spark-notebook/RUNNING_PID && /opt/spark-notebook/bin/spark-notebook"
-    volumes:
-      - ./notebooks:/opt/spark-notebook/notebooks
-    
     networks:
       - my_shared_network
+  
+  # jupyterlab:
+  #   image: jupyter/pyspark-notebook:spark-3.3.2 
+  #   container_name: jupyterlab-ML
+  #   ports:
+  #     - 8888:8888
+  #   volumes:
+  #     - ./pak:/opt/workspace 
+        
+  # spark-master:
+  #   image: apache/spark:3.5.1
+  #   container_name: spark-master
+  #   ports:
+  #     - "9090:8082"
+  #     - "7077:7077"
+  #   env_file:
+  #     - ./hadoop.env
+  #   networks:
+  #     - my_shared_network
+ 
+  # spark-worker:
+  #   image: apache/spark:3.5.1
+  #   depends_on:
+  #     - spark-master
+  #   environment:
+  #     - SPARK_MASTER=spark://spark-master:7077
+  #   ports:
+  #     - 8081:8081
+  #   env_file:
+  #     - ./hadoop.env
+  #   networks:
+  #     - my_shared_network
+
+  # spark-notebook:
+  #   image: apache/spark:3.5.1
+  #   container_name: spark-notebook
+  #   env_file:
+  #     - ./hadoop.env
+  #   ports:
+  #     - 9001:9001
+  #   entrypoint: sh -c "rm -f /opt/spark-notebook/RUNNING_PID && /opt/spark-notebook/bin/spark-notebook"
+  #   volumes:
+  #     - ./notebooks:/opt/spark-notebook/notebooks
+    
+  #   networks:
+  #     - my_shared_network
   
 #hadoop
   namenode:
@@ -101,7 +123,7 @@ services:
       - NAMENODE_HOST=namenode
     networks:
       - my_shared_network
-
+    
 
 networks:
   my_shared_network:

@@ -1,10 +1,11 @@
 from pyspark.sql import SparkSession
 
-def main():
-    spark = SparkSession.builder.appName("TestSparkConnection").getOrCreate()
-    df = spark.createDataFrame([("Hello, Spark!",)], ["message"])
-    df.show()
-    spark.stop()
+spark = SparkSession.builder \
+    .appName('Standalone Spark Connection Test') \
+    .master('spark://<master-ip>:7077') \
+    .getOrCreate()
 
-if __name__ == "__main__":
-    main()
+df = spark.range(1, 10)
+df.show()
+
+spark.stop()
