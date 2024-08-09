@@ -2,6 +2,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
+    container_name: pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
@@ -11,75 +12,78 @@ services:
       - my_shared_network
  
   spark-master:
-    image: bde2020/spark-master:2.1.0-hadoop2.8-hive-java8
+    #image: bitnami/spark:3.5.1
+    build: 
+      context: ./spark
+      dockerfile: Dockerfile 
     container_name: spark-master
     ports:
-      - 4040:4040
+      - 8084:8080  
       - 7077:7077
-    env_file:
-      - ./hadoop.env
+    volumes:
+      - ./orchestrator/dags/spark_jobs:/opt/bitnami/spark/spark_jobs
+      - ./spark/conf/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
+      - ./spark/conf/spark-env.sh:/opt/bitnami/spark/conf/spark-env.sh
+      - ./spark/conf/spark-env.cmd:/opt/bitnami/spark/conf/spark-env.cmd
+      - ./spark/events:/opt/bitnami/spark/events
+      - ./spark/conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml
+      - ./spark/conf/hdfs-site.xml:/opt/bitnami/spark/conf/hdfs-site.xml
+      - ./spark/hadoop/bin:/opt/bitnami/spark/hadoop/bin
+    networks:
+      - my_shared_network
   spark-worker:
-    image: bde2020/spark-worker:2.1.0-hadoop2.8-hive-java8
+    #image: bitnami/spark:3.5.1
+    build: 
+      context: ./spark
+      dockerfile: Dockerfile
+    container_name: spark-worker
     depends_on:
       - spark-master
     environment:
       - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_MODE=worker
     ports:
-      - 8081:8081
-    env_file:
-      - ./hadoop.env
+      - 8085:8081
+    networks:
+      - my_shared_network
 
-  # spark-notebook:
-  #   image: apache/spark:3.5.1
-  #   container_name: spark-notebook
-  #   env_file:
-  #     - ./hadoop.env
-  #   ports:
-  #     - 9001:9001
-  #   entrypoint: sh -c "rm -f /opt/spark-notebook/RUNNING_PID && /opt/spark-notebook/bin/spark-notebook"
-  #   volumes:
-  #     - ./notebooks:/opt/spark-notebook/notebooks
-    
-  #   networks:
-  #     - my_shared_network
-  
 #hadoop
   namenode:
-    image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    hostname: namenode
     container_name: namenode
-    volumes:
-      - ./data/namenode:/hadoop/dfs/name
-    environment:
-      - CLUSTER_NAME=test
+    ports:
+      - 9000:9000 
+      - 9870:9870
     env_file:
       - ./hadoop.env
-    ports:
-      - 50070:50070
+    volumes:
+      - hadoop_datanode1:/hadoop/dfs/data
+    environment:
+      - CLUSTER_NAME=test
     networks:
       - my_shared_network
 
   datanode:
-    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
-    depends_on: 
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    ports:
+      - 9864:9864
+      - 9866:9866
+    depends_on:
       - namenode
-    volumes:
-      - ./data/datanode:/hadoop/dfs/data
     env_file:
       - ./hadoop.env
-    ports:
-      - 50075:50075
-    networks:
-      - my_shared_network
-    
-  hue:
-    image: bde2020/hdfs-filebrowser:3.11
-    ports:
-      - 8088:8088
+    volumes:
+      - hadoop_datanode1:/hadoop/dfs/data
     environment:
-      - NAMENODE_HOST=namenode
+      SERVICE_PRECONDITION: "namenode:9870"
     networks:
-      - my_shared_network
-    
+      - my_shared_network   
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode1:
 
 networks:
   my_shared_network:

@@ -2,6 +2,6 @@
 orchestrator/dags/__pycache__
 orchestrator/dags/data
 orchestrator/logs
-orchestrator/airflow_docker_config/plugins
-orchestrator/airflow_docker_config/pgdata
+orchestrator/plugins
+orchestrator/airflow-docker-config/pgdata
 venv
