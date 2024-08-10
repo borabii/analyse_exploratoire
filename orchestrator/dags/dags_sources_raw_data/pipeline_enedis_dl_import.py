@@ -3,6 +3,7 @@ import os
 import pendulum
 from airflow.decorators import dag, task, task_group
 from airflow.operators.empty import EmptyOperator
+from airflow.utils.dates import days_ago
 
 import logging
 import requests
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
         "depends_on_past": False,
         "email_on_failure": False,
         "email_on_retry": False,
+        'start_date': days_ago(1),
         "retries": 1,
     },
     catchup=False,
@@ -49,7 +51,7 @@ def pipeline_enedis_dl_import():
             @task(task_id=f'store__{date}_data_in_hdfs')
             def store_data_in_hdfs(data, date=date):
 
-                client = InsecureClient('http://namenode:50070')
+                client = InsecureClient('http://namenode:9870')
 
                 tmp_file_path = f'/opt/airflow/dags/data/in/consommation-annuelle-residentielle_{date}.json'
                 with open(tmp_file_path, "w+") as file:
