@@ -22,13 +22,14 @@ services:
       - 7077:7077
     volumes:
       - ./orchestrator/dags/spark_jobs:/opt/bitnami/spark/spark_jobs
-      - ./spark/conf/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
-      - ./spark/conf/spark-env.sh:/opt/bitnami/spark/conf/spark-env.sh
-      - ./spark/conf/spark-env.cmd:/opt/bitnami/spark/conf/spark-env.cmd
+      - ./spark/conf/log4j.properties:/opt/bitnami/spark/conf/log4j.properties # config log spark
+      - ./spark/conf/spark-env.sh:/opt/bitnami/spark/conf/spark-env.sh # config spark
+      - ./spark/conf/spark-env.cmd:/opt/bitnami/spark/conf/spark-env.cmd # config spark
       - ./spark/events:/opt/bitnami/spark/events
-      - ./spark/conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml
-      - ./spark/conf/hdfs-site.xml:/opt/bitnami/spark/conf/hdfs-site.xml
+      - ./spark/conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml # config pour la connection spark hadoop
+      - ./spark/conf/hdfs-site.xml:/opt/bitnami/spark/conf/hdfs-site.xml # config pour la connection spark hadoop
       - ./spark/hadoop/bin:/opt/bitnami/spark/hadoop/bin
+      - ./spark/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar # config pour pour la connection spark postgresql
     networks:
       - my_shared_network
   spark-worker:
