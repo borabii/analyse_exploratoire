@@ -59,7 +59,7 @@ def pipeline_enedis_dl_import():
 
                 hdfs_file_path = f'/hadoop/dfs/data/enedis/consommation-annuelle-residentielle_{date}.json'
                 # Remove tmp file
-                #os.remove
+                os.remove
                 # Upload the file to HDFS
                 client.upload(hdfs_file_path, tmp_file_path, overwrite=True)
 

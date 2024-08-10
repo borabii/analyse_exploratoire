@@ -1,5 +1,6 @@
 /data
 orchestrator/dags/__pycache__
+orchestrator/dags/dags_sources_raw_data/__pycache__
 orchestrator/dags/data
 orchestrator/logs
 orchestrator/plugins

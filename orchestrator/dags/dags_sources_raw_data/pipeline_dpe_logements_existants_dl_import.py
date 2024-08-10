@@ -60,7 +60,7 @@ def pipeline_dpe_logements_existants_dl_import():
                         url = data.get('next')
                         logger.info(f'This is the next URL: {url}')
                         logger.info(f'This is the dataL: {data}')
-                        if len(all_results) > 1000:
+                        if len(all_results) > 1000: # pour tester / a enlever pour avoir le full des données
                             logger.info(f"Collected more than 1000 results, stopping fetch.")
                             break
                     except ValueError as e:
