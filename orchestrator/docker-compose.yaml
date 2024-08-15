@@ -71,7 +71,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-    - ../spark/conf/postgresql-42.7.3.jar:/opt/airlfow/jars/postgresql-42.7.3.jar # config pour la connection spark postgresql$k
+    - ../spark/postgres-jar/postgresql-42.7.3.jar:/opt/airflow/jars/postgresql-42.7.3.jar # config pour la connection spark postgresql$k
   user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
   depends_on:
     &airflow-common-depends-on

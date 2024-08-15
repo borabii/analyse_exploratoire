@@ -29,7 +29,7 @@ services:
       - ./spark/conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml # config pour la connection spark hadoop
       - ./spark/conf/hdfs-site.xml:/opt/bitnami/spark/conf/hdfs-site.xml # config pour la connection spark hadoop
       - ./spark/hadoop/bin:/opt/bitnami/spark/hadoop/bin
-      - ./spark/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar # config pour pour la connection spark postgresql
+      - ./spark/postgres-jar/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar # config pour pour la connection spark postgresql
     networks:
       - my_shared_network
   spark-worker:
@@ -82,6 +82,29 @@ services:
     networks:
       - my_shared_network   
 
+#jupyter
+  jupyter_notebook:
+      image: jupyter/base-notebook 
+      container_name: jupyter_notebook
+      ports:
+        - "8888:8888"
+      volumes:
+        - ./notebooks:/home/jovyan/work
+        - ./spark/conf/core-site.xml:/usr/local/spark/conf/core-site.xml
+        - ./spark/conf/hdfs-site.xml:/usr/local/spark/conf/hdfs-site.xml
+        - ./spark/postgres-jar/postgresql-42.7.3.jar:/usr/local/spark/jars/postgresql-42.7.3.jar
+        - ./spark/java:/opt/bitnami/java
+      environment:
+        - JUPYTER_ENABLE_LAB=yes
+        - SPARK_MASTER=spark://spark-master:7077
+        - ENV JUPYTERHUB_SERVICE_URL=http://localhost:8000
+        - JAVA_HOME=/opt/bitnami/java
+      command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+      depends_on:
+        - spark-master
+        - namenode
+      networks:
+        - my_shared_network
 volumes:
   hadoop_namenode:
   hadoop_datanode1:

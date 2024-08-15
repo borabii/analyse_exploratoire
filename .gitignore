@@ -6,3 +6,7 @@ orchestrator/logs
 orchestrator/plugins
 orchestrator/airflow-docker-config/pgdata
 venv
+orchestrator/dags/dags_hadoop_to_postgresql/__pycache__
+orchestrator/dags/dags_sources_power_bi/__pycache__
+notebooks/.ipynb_checkpoints
+orchestrator/dags/spark_jobs/__pycache__

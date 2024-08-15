@@ -76,7 +76,7 @@ def pipeline_dpe_logements_existants_dl_import():
         @task(task_id=f'store___data_in_hdfs')
         def store_data_in_hdfs(data):
             logger.info(f'data from hdf fn {data}')
-            client = InsecureClient('http://namenode:50070')
+            client = InsecureClient('http://namenode:9870')
     
             tmp_file_path = f'/opt/airflow/dags/data/in/dpe_logements_existants.json'
             with open(tmp_file_path, "w+") as file:
