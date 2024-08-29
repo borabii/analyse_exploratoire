@@ -28,17 +28,17 @@ logger = logging.getLogger(__name__)
 )
 def pipeline_ban_dl_import():
     __departement_codes = [
-    # '01', '02', '03', '04', '05', '06', '07', '08', '09',
-    # '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
-    # '2A', '2B',  # Corse-du-Sud et Haute-Corse
-    # '21', '22', '23', '24', '25', '26', '27', '28', '29',
-    # '30', '31', '32', '33', '34', '35', '36', '37', '38', '39',
-    # '40', '41', '42', '43', '44', '45', '46', '47', '48', '49',
-    # '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
-    # '60', '61', '62', '63', '64', '65', '66', '67', '68', '69',
-    # '70', '71', '72', '73', '74', '75', '76', '77', '78', '79',
-    # '80', '81', '82', '83', '84', '85', '86', '87', '88', '89',
-    # '90', '91', '92', '93', '94', '95'
+    '01', '02', '03', '04', '05', '06', '07', '08', '09',
+    '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
+    '2A', '2B', 
+    '21', '22', '23', '24', '25', '26', '27', '28', '29',
+    '30', '31', '32', '33', '34', '35', '36', '37', '38', '39',
+    '40', '41', '42', '43', '44', '45', '46', '47', '48', '49',
+    '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
+    '60', '61', '62', '63', '64', '65', '66', '67', '68', '69',
+    '70', '71', '72', '73', '74', '75', '76', '77', '78', '79',
+    '80', '81', '82', '83', '84', '85', '86', '87', '88', '89',
+    '90', '91', '92', '93', '94', '95',
     '90','91', '92'
     ]
     start = EmptyOperator(
@@ -59,23 +59,23 @@ def pipeline_ban_dl_import():
                 if res.status_code == 200:
                     # Paths for the gz file and the output csv file
                     gz_file_path = f'/opt/airflow/dags/data/in/adresses-{dep}.csv.gz'
-                    csv_file_path = f'/opt/airflow/dags/data/in/adresses-{dep}.csv'
+                    # csv_file_path = f'/opt/airflow/dags/data/in/adresses-{dep}.csv'
                     
                     # Save the gzipped file
                     with open(gz_file_path, 'wb') as gz_file:
                         gz_file.write(res.content)
                     
-                    # Extract the gz file to get the CSV file
-                    with gzip.open(gz_file_path, 'rb') as f_in:
-                        with open(csv_file_path, 'wb') as f_out:
-                            shutil.copyfileobj(f_in, f_out)
+                    # # Extract the gz file to get the CSV file
+                    # with gzip.open(gz_file_path, 'rb') as f_in:
+                    #     with open(csv_file_path, 'wb') as f_out:
+                    #         shutil.copyfileobj(f_in, f_out)
                     
-                    # Remove the gz file after extraction (optional)
-                    os.remove(gz_file_path)
+                    # # Remove the gz file after extraction (optional)
+                    # os.remove(gz_file_path)
                     
-                    logger.info(f'Departement {dep} export: CSV saved to {csv_file_path}')
+                    logger.info(f'Departement {dep} export: CSV saved to {gz_file_path}')
                 
-                    return csv_file_path
+                    return gz_file_path
                 else:
                     logger.error(f'Failed to fetch the file for departement {dep}: {res.status_code}')
                 return None
@@ -85,9 +85,9 @@ def pipeline_ban_dl_import():
 
                 client = InsecureClient('http://namenode:9870')
 
-                tmp_file_path = f'/opt/airflow/dags/data/in/adresses-{dep}.csv'
+                tmp_file_path = f'/opt/airflow/dags/data/in/adresses-{dep}.csv.gz'
                 
-                hdfs_file_path = f'/hadoop/dfs/data/base-adresse-national'
+                hdfs_file_path = f'/hadoop/dfs/data/base-adresse-national/'
                 # Remove tmp file
                 os.remove
                 # Upload the file to HDFS
