@@ -34,7 +34,7 @@ def pipeline_enedis_dl_to_dwh():
     python_job = SparkSubmitOperator(
         task_id="python_job",
         conn_id="spark_connection",
-        application="/opt/airflow/dags/spark_jobs/enedis_rawdata_dl_to_dwh_job.py",
+        application="/opt/airflow/dags/spark_jobs/hadoop_to_posgresql/enedis_rawdata_dl_to_dwh_job.py",
         conf={
             'spark.yarn.submit.waitAppCompletion': 'false',
             'spark.master': 'spark://spark-master:7077',
