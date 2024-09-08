@@ -24,7 +24,7 @@ dag = DAG(
         "retries": 1,
     },
     catchup=False,
-    tags=['dpe_neufs_raw_data']
+    tags=['dpe_neufs_rawdata','dpe']
 )
 def pipeline_dpe_logements_neufs_dl_import():
     start = PythonOperator(

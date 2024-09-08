@@ -22,7 +22,7 @@ dag = DAG(
         "retries": 1,
     },
     catchup=False,
-    tags=['dpe_existants_raw_data']
+    tags=['dpe_existants_rawdata','dpe']
 )
 def pipeline_dpe_logements_existants_dl_import():
     

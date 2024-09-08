@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
         "email_on_retry": False,
         "retries": 1,
     },
-    catchup=False
+    catchup=False,
+    tags=['ban_rawdata','ban']
 )
 def pipeline_ban_dl_import():
     __departement_codes = [
