@@ -22,7 +22,7 @@ hdfs_json_path = f"hdfs://namenode:9000/hadoop/dfs/data/"
 postgres_url = "jdbc:postgresql://postgres:5432/postgres"  
 
 # Write DataFrame to PostgreSQL table
-table_name = "rawdata_dpe_logement_neufs"
+table_name = "dpe_logement_neufs"
 
 def read_data_from_hdfs(hdfs_path):
     """
@@ -31,10 +31,14 @@ def read_data_from_hdfs(hdfs_path):
     :param hdfs_path: The path to the JSON file in HDFS.
     :return: Spark DataFrame containing the data.
     """
-    
-    df = spark.read.parquet(f'{hdfs_path}/DPE/raw_data/dpe_logements_neufs')
-
-    logger.info(f'DataFrame loaded with schema:{df.printSchema()} ')
+    df = None
+    for lot in ['lot','lot_1','lot_2']:
+        df1 = spark.read.parquet(f'{hdfs_path}/DPE/raw_data/dpe_logements_neufs/{lot}')
+        if df is None:
+            df = df1  # Initialize the df for the first iteration
+        else:
+            df = df.union(df1)  # Union for subsequent DataFrames
+        logger.info(f'DataFrame loaded with schema:{df.printSchema()} ')
     
     return df
 
@@ -59,8 +63,8 @@ def store_data_in_postgres(df: DataFrame, postgres_url: str, table_name: str):
         .jdbc(url=postgres_url, table=table_name, properties=jdbc_properties)
     logger.info("Data written to postgre")
 
-enedis_rawdata = read_data_from_hdfs(hdfs_json_path)
-store_data_in_postgres(enedis_rawdata, postgres_url, table_name)
+dpe = read_data_from_hdfs(hdfs_json_path)
+store_data_in_postgres(dpe, postgres_url, table_name)
 
 # Stop the SparkSession
 spark.stop()

@@ -16,7 +16,7 @@ spark = SparkSession.builder \
 .config('spark.ui.port', '4041') \
 .getOrCreate()
 
-hdfs_json_path = f"hdfs://namenode:9000/hadoop/dfs/data/"
+hdfs_json_path = f"hdfs://namenode:9000/hadoop/dfs/data/enedis/staging"
 
 # PostgreSQL connection properties
 postgres_url = "jdbc:postgresql://postgres:5432/postgres"  
@@ -24,32 +24,10 @@ postgres_url = "jdbc:postgresql://postgres:5432/postgres"
 __annee_conso = ['2021','2022','2023']
 
 # Write DataFrame to PostgreSQL table
-table_name = "rawdata_enedis"
+table_name = "enedis_conso"
 
-# Define the schema based on the provided structure
-schema = StructType([
-    StructField("adresse", StringType(), True),
-    StructField("annee", StringType(), True),
-    StructField("code_commune", StringType(), True),
-    StructField("code_departement", StringType(), True),
-    StructField("code_epci", StringType(), True),
-    StructField("code_iris", StringType(), True),
-    StructField("code_region", StringType(), True),
-    StructField("consommation_annuelle_moyenne_de_la_commune_mwh", DoubleType(), True),
-    StructField("consommation_annuelle_moyenne_par_site_de_l_adresse_mwh", DoubleType(), True),
-    StructField("consommation_annuelle_totale_de_l_adresse_mwh", DoubleType(), True),
-    StructField("indice_de_repetition", StringType(), True),
-    StructField("libelle_de_voie", StringType(), True),
-    StructField("nom_commune", StringType(), True),
-    StructField("nom_iris", StringType(), True),
-    StructField("nombre_de_logements", LongType(), True),
-    StructField("numero_de_voie", LongType(), True),
-    StructField("segment_de_client", StringType(), True),
-    StructField("tri_des_adresses", LongType(), True),
-    StructField("type_de_voie", StringType(), True)
-])
 
-def read_data_from_hdfs(hdfs_path):
+def read_data_from_hdfs():
     """
     Reads data from HDFS and returns a Spark DataFrame.
 
@@ -57,12 +35,17 @@ def read_data_from_hdfs(hdfs_path):
     :return: Spark DataFrame containing the data.
     """
     # create an Empty DataFrame object
-    df = spark.createDataFrame([], schema=schema)
-    for annee in __annee_conso:
-        df1 = spark.read.json(f'{hdfs_path}enedis/consommation-annuelle-residentielle_{annee}.json')
-        df = df.union(df1)
+    df = None
 
-    logger.info(f'DataFrame loaded with schema:{df.schema.simpleString()} ')
+    for annee in __annee_conso:
+        df1 = spark.read.csv(f'hdfs:///hadoop/dfs/data/enedis/staging/consommation-annuelle-residentielle_{annee}.csv',sep=';',header=True)
+        # Combine the DataFrames using union
+        if df is None:
+            df = df1  # Initialize the df for the first iteration
+        else:
+            df = df.union(df1)  # Union for subsequent DataFrames
+
+    logger.info(f'DataFrame loaded with schema:{df.printSchema()}')
     return df
 
 def store_data_in_postgres(df: DataFrame, postgres_url: str, table_name: str):
@@ -86,7 +69,7 @@ def store_data_in_postgres(df: DataFrame, postgres_url: str, table_name: str):
         .jdbc(url=postgres_url, table=table_name, properties=jdbc_properties)
     logger.info("Data written to postgre")
 
-enedis_rawdata = read_data_from_hdfs(hdfs_json_path)
+enedis_rawdata = read_data_from_hdfs()
 store_data_in_postgres(enedis_rawdata, postgres_url, table_name)
 
 # Stop the SparkSession

@@ -22,7 +22,7 @@ hdfs_json_path = f"hdfs://namenode:9000/hadoop/dfs/data/"
 postgres_url = "jdbc:postgresql://postgres:5432/postgres"  
 
 # Write DataFrame to PostgreSQL table
-table_name = "rawdata_dpe_logement_existants"
+table_name = "dpe_logement_existants"
 
 
 def read_data_from_hdfs(hdfs_path):
@@ -32,9 +32,15 @@ def read_data_from_hdfs(hdfs_path):
     :param hdfs_path: The path to the JSON file in HDFS.
     :return: Spark DataFrame containing the data.
     """
-    df = spark.read.parquet(f'{hdfs_path}/DPE/raw_data/dpe_logements_existants')
-
-    logger.info(f'DataFrame loaded with schema:{df.printSchema()}')
+    df = None
+    for lot in ['lot','lot_1','lot_2']:
+        df1 = spark.read.parquet(f'{hdfs_path}/DPE/raw_data/dpe_logements_existants/{lot}')
+        # Combine the DataFrames using union
+        if df is None:
+            df = df1  # Initialize the df for the first iteration
+        else:
+            df = df.union(df1)  # Union for subsequent DataFrames
+        logger.info(f'DataFrame loaded with schema:{df.printSchema()}')
     
     return df
 
