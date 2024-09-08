@@ -25,7 +25,7 @@ dag = DAG(
         "retries": 1,
     },
     catchup=False,
-    tags=['enedis_hdfs_rawdata','enedis']
+    tags=['enedis_transformation_rawdata','enedis']
 )
 def enedis_transform_rawdata():
     
