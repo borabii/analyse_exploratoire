@@ -1,4 +1,5 @@
 import logging
+import os
 # Imports pour Spark
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
@@ -19,10 +20,17 @@ spark = SparkSession.builder \
 .getOrCreate()
 
 def fetch_from_api():
-        url = 'https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-existants/lines?page=1&size=10'
+        url_file_path = '/opt/airflow/dags/data/out/next_url_existants.txt'
+
+        # Lire l'URL précédente depuis le fichier, si elle existe
+        if os.path.exists(url_file_path):
+            with open(url_file_path, 'r') as file:
+                url = file.read().strip()
+        else:
+            url = 'https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-existants/lines?page=1&size=10000'
         
         all_results = []
-        max_calls = 1  # Number of API calls to make
+        max_calls = 10 # Number of API calls to make
         call_count = 0  # Counter for the number of API calls
         # Loop to handle pagination
         while url and call_count < max_calls:
@@ -46,6 +54,8 @@ def fetch_from_api():
                     # Check if we have made 10 API calls
                     if call_count >= max_calls:
                         print("Reached maximum number of API calls. Stopping fetch.")
+                        with open(url_file_path, 'w') as file:
+                            file.write(url)
                         break
 
                 except ValueError as e:
@@ -162,7 +172,7 @@ df_filtered = df.filter(F.col('Année').isin(2021, 2022, 2023))
 
 df_filtered = df_filtered.repartition('Année')
 
-df_filtered.write.mode('overwrite').partitionBy('Année').format('parquet') \
+df_filtered.write.mode('append').partitionBy('Année').format('parquet') \
     .option("path", "hdfs:///hadoop/dfs/data/DPE/raw_data/dpe_logements_existants") \
     .saveAsTable("dpe_logements_existants")
 
