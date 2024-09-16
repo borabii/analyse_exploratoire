@@ -88,14 +88,13 @@ def pipeline_ban_dl_import():
 
                 tmp_file_path = f'/opt/airflow/dags/data/in/adresses-{dep}.csv.gz'
                 
-                hdfs_file_path = f'/hadoop/dfs/data/base-adresse-national/'
+                hdfs_file_path = f'/hadoop/dfs/data/base-adresse-national/adresses-{dep}.csv.gz'
                 # Remove tmp file
                 os.remove
                 # Upload the file to HDFS
                 client.upload(hdfs_file_path, tmp_file_path, overwrite=True)
 
-            fetch_from_api()
-            store_data_in_hdfs()
+            fetch_from_api()>>store_data_in_hdfs()
 
     start >> pull_and_push() >> end
 
