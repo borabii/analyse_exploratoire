@@ -21,7 +21,8 @@ dag = DAG(
         'start_date': days_ago(1),
         "retries": 1,
     },
-    catchup=False
+    catchup=False,
+    tags=["dpe","dwh_to_dl"]
 )
 def pipeline_dpe_log_existants_dl_to_dwh():
     

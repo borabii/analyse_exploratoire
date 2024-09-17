@@ -33,15 +33,11 @@ def read_data_from_hdfs(hdfs_path):
     :return: Spark DataFrame containing the data.
     """
     df = None
-    for lot in ['lot','lot_1','lot_2']:
-        df1 = spark.read.parquet(f'{hdfs_path}/DPE/raw_data/dpe_logements_existants/{lot}')
-        # Combine the DataFrames using union
-        if df is None:
-            df = df1  # Initialize the df for the first iteration
-        else:
-            df = df.union(df1)  # Union for subsequent DataFrames
-        logger.info(f'DataFrame loaded with schema:{df.printSchema()}')
     
+    df = spark.read.parquet(f'{hdfs_path}/DPE/raw_data/dpe_logements_existants/')
+    
+    logger.info(f'DataFrame loaded with schema:{df.printSchema()}')
+
     return df
 
 def store_data_in_postgres(df: DataFrame, postgres_url: str, table_name: str):
