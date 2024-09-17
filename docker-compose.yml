@@ -51,6 +51,22 @@ services:
     networks:
       - my_shared_network
 
+  spark-worker-1:
+    #image: bitnami/spark:3.5.1
+    build: 
+      context: ./spark
+      dockerfile: Dockerfile
+    container_name: spark-worker-1
+    restart: always
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_MODE=worker
+    ports:
+      - 8086:8086
+    networks:
+      - my_shared_network
 #hadoop
   namenode:
     image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
@@ -63,7 +79,7 @@ services:
     env_file:
       - ./hadoop.env
     volumes:
-      - hadoop_datanode1:/hadoop/dfs/data
+      - ./hadoop/data/namenode:/hadoop/dfs/data
     environment:
       - CLUSTER_NAME=test
     networks:
@@ -80,7 +96,7 @@ services:
     env_file:
       - ./hadoop.env
     volumes:
-      - hadoop_datanode1:/hadoop/dfs/data
+      -  ./hadoop/data/datanode:/hadoop/dfs/data
     restart: always
     environment:
       SERVICE_PRECONDITION: "namenode:9870"
@@ -111,9 +127,23 @@ services:
         - namenode
       networks:
         - my_shared_network
-volumes:
-  hadoop_namenode:
-  hadoop_datanode1:
+
+  #streamlit
+  streamlit:
+    build: 
+      context: ./streamlit
+      dockerfile: Dockerfile
+    container_name: streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./streamlit/app.py:/app/app.py
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - my_shared_network
+
 
 networks:
   my_shared_network:
