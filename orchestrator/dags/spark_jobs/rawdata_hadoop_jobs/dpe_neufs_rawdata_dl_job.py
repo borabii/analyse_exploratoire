@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 # Imports pour Spark
@@ -19,54 +20,7 @@ spark = SparkSession.builder \
 .config('spark.ui.port', '4041') \
 .getOrCreate()
 
-def fetch_from_api():
-        url_file_path = '/opt/airflow/dags/data/out/next_url_neufs.txt'
 
-        # Lire l'URL précédente depuis le fichier, si elle existe
-        if os.path.exists(url_file_path):
-            with open(url_file_path, 'r') as file:
-                url = file.read().strip()
-        else:
-            url = 'https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-neufs/lines?page=1&size=10000'
-        
-        all_results = []
-        max_calls = 10  # Number of API calls to make
-        call_count = 0  # Counter for the number of API calls
-        # Loop to handle pagination
-        while url and call_count < max_calls:
-        # Fetch the JSON data from the URL
-            response = requests.get(url)
-            
-            # Check if the request was successful
-            if response.status_code == 200:
-                try:
-                    # Parse the JSON data
-                    data = response.json()
-                    
-                    # Append the results to the all_results list
-                    all_results.extend(data['results'])
-                    
-                    # Update the URL to the next page
-                    url = data.get('next')
-                    call_count += 1
-                    print(f"Call {call_count} completed. Next URL: {url}")
-                    
-                    # Check if we have made 10 API calls
-                    if call_count >= max_calls:
-                        print("Reached maximum number of API calls. Stopping fetch.")
-                        with open(url_file_path, 'w') as file:
-                            file.write(url)
-                        break
-
-                except ValueError as e:
-                    logger.error(f"Error parsing JSON: {e}")
-                    break
-            else:
-                logger.error(f"Failed to fetch data. Status code: {response.status_code}")
-                logger.error(f"Response content: {response.text}")
-                break
-        
-        return all_results
 
 schema = StructType([
     StructField("Conso_chauffage_dépensier_é_finale", StringType(), True),
@@ -163,7 +117,24 @@ schema = StructType([
     StructField("_id", StringType(), True)
 ])
 
-data = fetch_from_api()
+result_file = '/opt/airflow/dags/data/in/dpe_neufs_data.json'
+data = []
+
+if not os.path.exists(result_file):
+    logger.error(f"Le fichier {result_file} n'existe pas.")
+else:
+    logger.info(f"Lecture du fichier JSON à partir de {result_file}")
+    
+    # Lecture du fichier JSON
+    with open(result_file, 'r') as file:
+        try:
+            data = json.load(file)
+            logger.info(f"Le fichier JSON a été lu avec succès. Nombre d'entrées: {len(data)}")
+            for i, entry in enumerate(data[:1]):  # Afficher les 5 premiers éléments
+                logger.info(f"Entrée {i+1}: {entry}")    
+        except json.JSONDecodeError as e:
+            logger.error(f"Erreur lors de la lecture du fichier JSON: {e}")
+
 
 df = spark.createDataFrame(data, schema) 
 
@@ -175,6 +146,9 @@ df_filtered = df_filtered.repartition('Année')
 df_filtered.write.mode('overwrite').partitionBy('Année').format('parquet') \
     .option("path", "hdfs:///hadoop/dfs/data/DPE/raw_data/dpe_logements_neufs") \
     .saveAsTable("dpe_logements_neufs")
+logger.info("Données traitées et sauvegardées avec succès.")
+    
+
 
 # Stop the SparkSession
 spark.stop()
