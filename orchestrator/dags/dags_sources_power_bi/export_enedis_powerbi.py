@@ -37,7 +37,7 @@ def export_enedis_powerbi():
     python_job = SparkSubmitOperator(
         task_id="python_job",
         conn_id="spark_connection",
-        application="/opt/airflow/dags/spark_jobs/enedis_source_rapport_job.py",
+        application="/opt/airflow/spark_jobs/enedis_source_rapport_job.py",
         conf={
             'spark.yarn.submit.waitAppCompletion': 'false',
             'spark.master': 'spark://spark-master:7077',

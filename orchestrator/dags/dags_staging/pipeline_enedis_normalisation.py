@@ -1,7 +1,6 @@
-import json
 import logging
-import os
 from airflow.operators.python import PythonOperator
+from airflow.operators.empty import EmptyOperator
 
 
 from airflow.decorators import dag
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 dag = DAG(
-    dag_id='dpe_existants_transforme_rawdata',
+    dag_id='pipeline_enedis_normalisation',
     max_active_runs=3,
     schedule=None,  # "@daily",
     default_args={
@@ -25,20 +24,18 @@ dag = DAG(
         "retries": 1,
     },
     catchup=False,
-    tags=['dpe_existants_hdfs_rawdata']
+    tags=['enedis_normalisation','enedis']
 )
-def dpe_existants_transforme_rawdata():
+def pipeline_enedis_normalisation():
     
-    start = PythonOperator(
-        task_id="start",
-        python_callable = lambda: print("Jobs started"),
-        dag=dag
+    start = EmptyOperator(
+        task_id='start'
     )
 
     python_job = SparkSubmitOperator(
         task_id="python_job",
         conn_id="spark_connection",
-        application="/opt/airflow/dags/spark_jobs/rawdata_hadoop_jobs/enedis_rawdata_normalisation_job.py",
+        application="/opt/airflow/spark_jobs/rawdata_hadoop_jobs/enedis_rawdata_normalisation_job.py",
         conf={
             'spark.yarn.submit.waitAppCompletion': 'false',
             'spark.master': 'spark://spark-master:7077',
@@ -51,13 +48,10 @@ def dpe_existants_transforme_rawdata():
         dag=dag
     )
 
-    end = PythonOperator(
-        task_id="end",
-        python_callable = lambda: print("Jobs completed successfully"),
-        dag=dag
+    end = EmptyOperator(
+        task_id='end'
     )
-
     start >> python_job >> end
 
 
-dpe_existants_transforme_rawdata()
+pipeline_enedis_normalisation()

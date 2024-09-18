@@ -99,7 +99,7 @@ def pipeline_dpe_logements_existants_dl_import():
     python_job = SparkSubmitOperator(
         task_id="python_job",
         conn_id="spark_connection",
-        application="/opt/airflow/dags/spark_jobs/rawdata_hadoop_jobs/dpe_existants_rawdata_dl_job.py",
+        application="/opt/airflow/spark_jobs/rawdata_hadoop_jobs/dpe_existants_rawdata_dl_job.py",
         conf={
             'spark.yarn.submit.waitAppCompletion': 'false',
             'spark.master': 'spark://spark-master:7077',
