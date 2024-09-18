@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import concat_ws, col, lower, regexp_replace,concat
 
 spark = SparkSession.builder \
-.appName('dpe_existants_rawdata_dl_job') \
+.appName('enedis_rawdata_normalisation_job') \
 .master('spark://spark-master:7077') \
 .config("spark.hadoop.fs.defaultFS", "hdfs://namenode:9000") \
 .config('spark.ui.port', '4041') \

@@ -9,7 +9,11 @@ venv
 orchestrator/dags/dags_hadoop_to_postgresql/__pycache__
 orchestrator/dags/dags_sources_power_bi/__pycache__
 notebooks/.ipynb_checkpoints
-orchestrator/dags/spark_jobs/__pycache__
+orchestrator/spark_jobs/__pycache__
 spark/postgres-jar
 spark/java
+orchestrator/dags_rawdata_trasform/__pycache__
+hadoop/
+orchestrator/spark_jobs/rawdata_hadoop_jobs/__pycache__
+orchestrator/dags/dags_staging/__pycache__
 orchestrator/dags/dags_rawdata_trasform/__pycache__

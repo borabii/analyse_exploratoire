@@ -6,8 +6,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
-# Import pour les requêtes HTTP
-import requests
 
 # Set up the logger
 logger = logging.getLogger(__name__)
