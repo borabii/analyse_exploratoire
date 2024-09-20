@@ -1,4 +1,5 @@
 
+from datetime import timedelta
 import json
 import os
 from airflow.decorators import dag
@@ -91,6 +92,7 @@ def pipeline_dpe_logements_neufs_dl_import():
     fetch_data = PythonOperator(
         task_id="fetch_data",
         python_callable = fetch_from_api,
+        execution_timeout=timedelta(minutes=30),
         dag=dag
     )
 

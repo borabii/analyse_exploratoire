@@ -1,4 +1,5 @@
 
+from datetime import timedelta
 import json
 import os
 from airflow.decorators import dag
@@ -67,6 +68,10 @@ def fetch_from_api():
             json.dump(all_results, f)
         return all_results
 
+def delete_tmp_file():
+    file = '/opt/airflow/dags/data/in/dpe_existants_data.json'
+    os.remove(file)
+
 dag = DAG(
     dag_id='pipeline_dpe_logements_existants_dl_import',
     start_date=pendulum.datetime(2024, 9, 17),
@@ -93,7 +98,8 @@ def pipeline_dpe_logements_existants_dl_import():
     fetch_data = PythonOperator(
         task_id="fetch_data",
         python_callable = fetch_from_api,
-        dag=dag
+        dag=dag,
+        execution_timeout=timedelta(minutes=30)
     )
 
     python_job = SparkSubmitOperator(
@@ -114,7 +120,7 @@ def pipeline_dpe_logements_existants_dl_import():
 
     end = PythonOperator(
         task_id="end",
-        python_callable = lambda: print("Jobs completed successfully"),
+        python_callable = delete_tmp_file,
         dag=dag
     )
 
